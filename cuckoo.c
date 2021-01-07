@@ -87,16 +87,6 @@ static int rehashInsert(HashTable *ht, char *key, int value) {
 
 static void rehash(HashTable **ht, float sizeRatio) {
 	HashTable *htt = *ht;
-	/*
-	printTable(htt);
-	printf("rehash\n"); 
-	char **res = findDubles(htt);
-	if (!res) printf("good"); 
-	else
-	for (int i=0; i<htt->capasity*2; i++) if (res[i]) {
-        printf("%s\n", res[i]);
-    }
-	exit(0);*/
 	HashTable *htn = initTable_s(htt->capasity * sizeRatio);
 	for (int i=0; i < htt->capasity; i++) {
 		if (htt->t1[i].key && !rehashInsert(htn, htt->t1[i].key, htt->t1[i].value)){
@@ -190,17 +180,31 @@ Data* get(HashTable *ht, const char *key) {
 int delete(HashTable *ht, const char *key) {
 	unsigned long hk = hash(ht->h1, ht->shift, ht->capasity, key);
 	if (ht->t1[hk].key && !KEY_CMP(ht->t1[hk].key, key)){
+		free(ht->t1[hk].key);
 		memset(&ht->t1[hk], 0, sizeof(ht->t1[hk]));
 		if (--ht->size < (2 * ht->capasity)/5) rehash(&ht, REALLOC_RATIO_3);
 		return 1;
 	}
 	hk = hash(ht->h2, ht->shift, ht->capasity, key);
 	if (ht->t2[hk].key && !KEY_CMP(ht->t2[hk].key, key)){
+		free(ht->t2[hk].key);
 		memset(&ht->t2[hk], 0, sizeof(ht->t2[hk]));
 		if (--ht->size < (2 * ht->capasity)/5) rehash(&ht, REALLOC_RATIO_3);
 		return 1;
 	}
 	return 0;
+}
+
+void destroyTable(HashTable *ht) {
+	for (int i=0; i < ht->capasity; i++) {
+		if (ht->t1[i].key) free(ht->t1[i].key);
+		if (ht->t2[i].key) free(ht->t2[i].key);
+	}
+	free(ht->t1);
+	free(ht->t2);
+	free(ht->h1);
+	free(ht->h2);
+	free(ht);
 }
 
 char* lookup2(HashTable *ht, const char *key) {

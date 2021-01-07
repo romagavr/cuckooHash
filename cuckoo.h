@@ -44,6 +44,7 @@ struct HashTable {
 }; 
 
 HashTable* initTable(int capasity);
+void destroyTable(HashTable *ht);
 int insert(HashTable *ht, const char *key, int value);
 void printTable(HashTable *ht);
 int lookup(HashTable *ht, const char *key);
